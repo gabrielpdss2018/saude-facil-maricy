@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Meus Agendamentos - Saúde Fácil</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
+    
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f0f4f8; padding: 20px; color: #2c3e50; }
+        .nav-bar { background: linear-gradient(135deg, #1abc9c, #16a085); padding: 15px 30px; border-radius: 50px; margin: 0 auto 25px auto; display: flex; justify-content: space-between; align-items: center; max-width: 900px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .nav-bar .logo-user { color: white; font-weight: 700; font-size: 16px; display: flex; align-items: center; gap: 10px; }
+        .nav-links { display: flex; gap: 20px; }
+        .nav-links a { color: white; text-decoration: none; font-weight: 600; font-size: 14px; padding: 8px 15px; border-radius: 20px; transition: 0.3s; }
+        .nav-links a:hover { background-color: rgba(255,255,255,0.2); }
+        .nav-links a.sair { background-color: #e74c3c; box-shadow: 0 4px 10px rgba(231, 76, 60, 0.3); }
+
+        .container { background-color: white; padding: 30px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); max-width: 900px; margin: 0 auto; border-top: 5px solid #3498db; }
+        
+        .header-historico { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #ecf0f1; padding-bottom: 15px; }
+        h2 { margin: 0; font-size: 22px; color: #2c3e50; }
+        
+        /* Estilo das Abas (Tabela vs Calendário) */
+        .tabs { display: flex; gap: 10px; }
+        .tab-btn { background-color: #ecf0f1; color: #7f8c8d; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; font-size: 14px; }
+        .tab-btn.active { background-color: #3498db; color: white; box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3); }
+        
+        /* Views */
+        .view-content { display: none; }
+        .view-content.active { display: block; animation: fadeIn 0.4s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Tabela */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 16px; text-align: left; border-bottom: 1px solid #edf2f7; }
+        th { background-color: #f8fafc; color: #7f8c8d; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; border-radius: 8px 8px 0 0;}
+        .status-badge { padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+        .status-pendente { background-color: #fef3c7; color: #d97706; }
+        .status-cancelado { background-color: #fee2e2; color: #dc2626; text-decoration: line-through; }
+        .status-finalizado { background-color: #d1fae5; color: #059669; }
+        .btn-cancelar { padding: 8px 15px; background-color: #e74c3c; color: white; text-decoration: none; border-radius: 6px; font-size: 13px; font-weight: bold; transition: 0.3s; display: inline-flex; align-items: center; gap: 5px; }
+        .btn-cancelar:hover { background-color: #c0392b; }
+
+        /* Calendário (Ajustes FullCalendar) */
+        #calendario-view { padding-top: 10px; }
+        .fc { font-family: 'Segoe UI', sans-serif; }
+        .fc-event { cursor: pointer; border: none; border-radius: 4px; padding: 2px 4px; font-size: 12px; font-weight: bold;}
+        .fc-toolbar-title { font-size: 18px !important; color: #2c3e50; font-weight: bold; text-transform: capitalize;}
+        .fc-button-primary { background-color: #3498db !important; border: none !important; text-transform: capitalize;}
+        .fc-button-primary:hover { background-color: #2980b9 !important; }
+        
+        /* Modal de Detalhes do Evento do Calendário */
+        .modal-detalhes { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-content { background: white; padding: 25px; border-radius: 12px; width: 350px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); position: relative;}
+        .modal-close { position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 20px; color: #7f8c8d; cursor: pointer; }
+        .modal-title { color: #2c3e50; margin-top: 0; border-bottom: 1px solid #eee; padding-bottom: 10px;}
+        .modal-info { margin: 15px 0; font-size: 15px; color: #34495e; line-height: 1.6;}
+    </style>
+</head>
+<body>
+    <div class="nav-bar">
+        <div class="logo-user"><i class="fa-solid fa-circle-user" style="font-size: 30px;"></i> Olá, {{ nome }}</div>
+        <div class="nav-links">
+            <a href="/agendamento"><i class="fa-solid fa-calendar-plus"></i> Novo Agendamento</a>
+            <a href="/perfil"><i class="fa-solid fa-id-card"></i> Perfil</a>
+            <a href="/logout" class="sair"><i class="fa-solid fa-right-from-bracket"></i> Sair</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="header-historico">
+            <h2><i class="fa-solid fa-clock-rotate-left" style="color: #3498db;"></i> Seu Histórico</h2>
+            
+            <div class="tabs">
+                <button class="tab-btn active" onclick="trocarAba('lista')"><i class="fa-solid fa-list"></i> Tabela</button>
+                <button class="tab-btn" onclick="trocarAba('calendario')"><i class="fa-regular fa-calendar-days"></i> Calendário</button>
+            </div>
+        </div>
+        
+        <div id="lista-view" class="view-content active">
+            <table>
+                <thead>
+                    <tr>
+                        <th><i class="fa-solid fa-calendar-day"></i> Data / Hora</th>
+                        <th><i class="fa-solid fa-hospital"></i> Unidade</th>
+                        <th><i class="fa-solid fa-stethoscope"></i> Serviço</th>
+                        <th><i class="fa-solid fa-barcode"></i> Protocolo</th>
+                        <th><i class="fa-solid fa-circle-info"></i> Status</th>
+                        <th>Ação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if not agendamentos %}
+                    <tr>
+                        <td colspan="6" style="text-align: center; color: #7f8c8d; padding: 40px;">
+                            <i class="fa-solid fa-folder-open" style="font-size: 30px; margin-bottom: 10px; color: #bdc3c7;"></i><br>
+                            Você não possui agendamentos registrados.
+                        </td>
+                    </tr>
+                    {% endif %}
+
+                    {% for a in agendamentos %}
+                    <tr>
+                        <td style="font-weight: 600;">
+                            {{ a['data_atendimento'][8:10] }}/{{ a['data_atendimento'][5:7] }}/{{ a['data_atendimento'][0:4] }} 
+                            <br><span style="color: #7f8c8d; font-size: 13px;"><i class="fa-regular fa-clock"></i> {{ a['horario_atendimento'] }}</span>
+                        </td>
+                        <td>{{ a['ubs_nome'] }}</td>
+                        <td>{{ a['servico_nome'] }}</td>
+                        <td style="font-family: monospace; font-size: 16px;"><strong>{{ a['protocolo'] }}</strong></td>
+                        <td><span class="status-badge status-{{ a['status'] | lower }}">{{ a['status'] }}</span></td>
+                        <td>
+                            {% if a['status'] == 'PENDENTE' %}
+                                <a href="/cancelar/{{ a['protocolo'] }}" class="btn-cancelar" onclick="return confirm('Confirmar o cancelamento? A vaga será liberada imediatamente.');">
+                                    <i class="fa-solid fa-ban"></i> Cancelar
+                                </a>
+                            {% else %}
+                                <span style="color: #cbd5e1;"><i class="fa-solid fa-minus"></i></span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div id="calendario-view" class="view-content">
+            <div id="calendar"></div>
+            
+            <div style="margin-top: 15px; font-size: 12px; color: #7f8c8d; display: flex; gap: 15px; justify-content: center;">
+                <span><i class="fa-solid fa-circle" style="color: #f39c12;"></i> Pendente</span>
+                <span><i class="fa-solid fa-circle" style="color: #27ae60;"></i> Finalizado</span>
+                <span><i class="fa-solid fa-circle" style="color: #e74c3c;"></i> Cancelado</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-detalhes" id="modalEvento">
+        <div class="modal-content">
+            <button class="modal-close" onclick="fecharModal()"><i class="fa-solid fa-xmark"></i></button>
+            <h3 class="modal-title" id="modTitulo"></h3>
+            <div class="modal-info">
+                <p><i class="fa-solid fa-hospital" style="color: #3498db; width: 20px;"></i> <span id="modUbs"></span></p>
+                <p><i class="fa-regular fa-clock" style="color: #3498db; width: 20px;"></i> <span id="modDataHora"></span></p>
+                <p><i class="fa-solid fa-barcode" style="color: #3498db; width: 20px;"></i> <strong>Protocolo:</strong> <span id="modProtocolo" style="font-family: monospace;"></span></p>
+                <p><i class="fa-solid fa-circle-info" style="color: #3498db; width: 20px;"></i> <strong>Status:</strong> <span id="modStatus" class="status-badge"></span></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let calendar; // Variável global do calendário
+
+        // 1. Lógica para alternar entre Tabela e Calendário
+        function trocarAba(aba) {
+            // Ajusta os botões
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+
+            // Ajusta as Views
+            document.querySelectorAll('.view-content').forEach(view => view.classList.remove('active'));
+            document.getElementById(aba + '-view').classList.add('active');
+
+            // Se mudou para o calendário, forçamos ele a se redesenhar no tamanho certo
+            if (aba === 'calendario' && calendar) {
+                calendar.render();
+            }
+        }
+
+        // 2. Inicializa o Calendário (FullCalendar)
+        document.addEventListener('DOMContentLoaded', function() {
+            var calendarEl = document.getElementById('calendar');
+
+            calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                locale: 'pt-br',
+                buttonText: { today: 'Hoje', month: 'Mês', week: 'Semana', day: 'Dia', list: 'Lista' },
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,listMonth'
+                },
+                // Busca os eventos da nossa nova API no Python
+                events: '/api/calendario_usuario',
+                
+                // O que acontece quando clica em uma consulta
+                eventClick: function(info) {
+                    const props = info.event.extendedProps;
+                    
+                    document.getElementById('modTitulo').innerText = info.event.title;
+                    document.getElementById('modUbs').innerText = props.ubs;
+                    
+                    // Formata a data e hora para ficar bonito (DD/MM/YYYY às HH:mm)
+                    const dataObj = info.event.start;
+                    const dataFormatada = dataObj.toLocaleDateString('pt-BR');
+                    const horaFormatada = dataObj.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+                    document.getElementById('modDataHora').innerText = `${dataFormatada} às ${horaFormatada}`;
+                    
+                    document.getElementById('modProtocolo').innerText = props.protocolo;
+                    
+                    const spanStatus = document.getElementById('modStatus');
+                    spanStatus.innerText = props.status;
+                    spanStatus.className = 'status-badge status-' + props.status.toLowerCase();
+
+                    // Mostra o Modal
+                    document.getElementById('modalEvento').style.display = 'flex';
+                }
+            });
+            calendar.render();
+        });
+
+        // 3. Fechar Modal
+        function fecharModal() {
+            document.getElementById('modalEvento').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Criar Conta - Saúde Fácil</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f0f4f8; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .container { background-color: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); width: 380px; text-align: center; border-top: 5px solid #3498db; }
+        .input-icon { position: relative; margin-top: 15px; }
+        .input-icon i { position: absolute; left: 15px; top: 14px; color: #95a5a6; }
+        input { width: 100%; padding: 12px 12px 12px 40px; border: 1px solid #dcdde1; border-radius: 8px; box-sizing: border-box; transition: 0.3s; background-color: #fcfcfc; font-size: 15px;}
+        input:focus { border-color: #3498db; outline: none; box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2); }
+        button { width: 100%; padding: 14px; background-color: #3498db; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; margin-top: 20px; transition: 0.3s; }
+        button:hover { background-color: #2980b9; }
+        a { color: #7f8c8d; text-decoration: none; display: block; margin-top: 20px; font-size: 14px; font-weight: bold; }
+        .erro { background-color: #fee2e2; color: #dc2626; padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size: 14px; font-weight: 600; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2 style="color: #2c3e50; margin-top: 0;">Novo Cadastro</h2>
+        
+        {% if erro %} <div class="erro"><i class="fa-solid fa-circle-exclamation"></i> {{ erro }}</div> {% endif %}
+
+        <form method="POST" action="/registro">
+            <div class="input-icon">
+                <i class="fa-solid fa-file-signature"></i>
+                <input type="text" name="nome" placeholder="Nome Completo Oficial" required>
+            </div>
+            <div class="input-icon">
+                <i class="fa-solid fa-user-tag" style="color: #e67e22;"></i>
+                <input type="text" name="nome_social" placeholder="Nome Social (Opcional)">
+            </div>
+            <div class="input-icon">
+                <i class="fa-solid fa-id-card"></i>
+                <input type="text" name="cpf" id="cpf" placeholder="CPF (Apenas números)" required maxlength="14">
+            </div>
+            <div class="input-icon">
+                <i class="fa-solid fa-notes-medical"></i>
+                <input type="text" name="cartao_sus" id="sus" placeholder="Nº do Cartão SUS" required maxlength="18">
+            </div>
+            <div class="input-icon">
+                <i class="fa-solid fa-lock"></i>
+                <input type="password" name="senha" placeholder="Crie uma Senha" required>
+            </div>
+            <button type="submit"><i class="fa-solid fa-user-check"></i> Finalizar Cadastro</button>
+        </form>
+        <a href="/login"><i class="fa-solid fa-arrow-left"></i> Já tenho conta</a>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 1. Bloqueia o Enter para não enviar o form acidentalmente
+            const inputs = document.querySelectorAll('input');
+            inputs.forEach((input, index) => {
+                input.addEventListener('keydown', function(event) {
+                    if (event.key === 'Enter') {
+                        event.preventDefault();
+                        if(inputs[index + 1]) inputs[index + 1].focus();
+                    }
+                });
+            });
+
+            // 2. Máscara de CPF (XXX.XXX.XXX-XX)
+            const inputCpf = document.getElementById('cpf');
+            inputCpf.addEventListener('input', function(e) {
+                let x = e.target.value.replace(/\D/g, '').match(/(\d{0,3})(\d{0,3})(\d{0,3})(\d{0,2})/);
+                e.target.value = !x[2] ? x[1] : x[1] + '.' + x[2] + (x[3] ? '.' + x[3] : '') + (x[4] ? '-' + x[4] : '');
+            });
+
+            // 3. Máscara do Cartão SUS (XXX XXXX XXXX XXXX)
+            const inputSus = document.getElementById('sus');
+            inputSus.addEventListener('input', function(e) {
+                let x = e.target.value.replace(/\D/g, '').match(/(\d{0,3})(\d{0,4})(\d{0,4})(\d{0,4})/);
+                e.target.value = !x[2] ? x[1] : x[1] + ' ' + x[2] + (x[3] ? ' ' + x[3] : '') + (x[4] ? ' ' + x[4] : '');
+            });
+            
+            // 4. Limpar as máscaras antes de enviar para o banco de dados salvar só números
+            document.querySelector('form').addEventListener('submit', function() {
+                inputCpf.value = inputCpf.value.replace(/\D/g, '');
+                inputSus.value = inputSus.value.replace(/\D/g, '');
+            });
+        });
+    </script>
+</body>
+</html>

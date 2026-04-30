@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Meu Perfil - Saúde Fácil</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f0f4f8; padding: 20px; color: #2c3e50; }
+        .nav-bar { background: linear-gradient(135deg, #1abc9c, #16a085); padding: 15px 30px; border-radius: 50px; margin: 0 auto 30px auto; display: flex; justify-content: space-between; align-items: center; max-width: 800px; box-shadow: 0 10px 20px rgba(26, 188, 156, 0.2); }
+        .nav-bar .logo-user { color: white; font-weight: 700; font-size: 16px; display: flex; align-items: center; gap: 10px; }
+        .nav-links { display: flex; gap: 20px; }
+        .nav-links a { color: white; text-decoration: none; font-weight: 600; font-size: 14px; padding: 8px 15px; border-radius: 20px; transition: 0.3s; }
+        .nav-links a:hover { background-color: rgba(255,255,255,0.2); }
+        .container { background-color: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); max-width: 800px; margin: 0 auto; }
+        
+        .section-title { color: #2c3e50; border-bottom: 2px solid #ecf0f1; padding-bottom: 10px; margin-top: 30px; margin-bottom: 20px; font-size: 20px; font-weight: bold; }
+        .section-title:first-child { margin-top: 0; }
+        
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .col-full { grid-column: span 2; }
+        .col-3 { grid-template-columns: 1fr 2fr; }
+        .col-4 { grid-template-columns: 1fr 1fr 1fr; }
+
+        label { display: block; font-weight: bold; color: #34495e; margin-bottom: 5px; font-size: 14px;}
+        input { width: 100%; padding: 12px; border: 2px solid #ecf0f1; border-radius: 8px; box-sizing: border-box; font-size: 15px; transition: 0.3s;}
+        input:focus { border-color: #3498db; outline: none; }
+        .readonly { background-color: #f8f9f9; color: #95a5a6; border-color: #eee; cursor: not-allowed;}
+        
+        button { width: 100%; padding: 16px; background-color: #27ae60; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; margin-top: 35px; transition: 0.3s; box-shadow: 0 4px 10px rgba(39, 174, 96, 0.3);}
+        button:hover { background-color: #2ecc71; transform: translateY(-2px); }
+        .sucesso { background-color: #d1fae5; color: #059669; padding: 12px; border-radius: 8px; margin-bottom: 20px; font-weight: bold; text-align: center; border: 1px solid #34d399;}
+    </style>
+</head>
+<body>
+    <div class="nav-bar">
+        <div class="logo-user"><i class="fa-solid fa-circle-user" style="font-size: 30px;"></i> {{ nome }}</div>
+        <div class="nav-links">
+            <a href="/agendamento"><i class="fa-solid fa-calendar-plus"></i> Agendar</a>
+            <a href="/meus_agendamentos"><i class="fa-solid fa-clock-rotate-left"></i> Histórico</a>
+        </div>
+    </div>
+
+    <div class="container">
+        {% if mensagem %} <div class="sucesso"><i class="fa-solid fa-check-circle"></i> {{ mensagem }}</div> {% endif %}
+
+        <form method="POST" action="/perfil" id="formPerfil">
+            
+            <div class="section-title"><i class="fa-solid fa-user-shield" style="color: #3498db;"></i> Dados Oficiais (SUS)</div>
+            <div class="form-grid">
+                <div>
+                    <label>Nome Oficial</label>
+                    <input type="text" value="{{ usuario['nome'] }}" class="readonly" readonly>
+                </div>
+                <div>
+                    <label>CPF</label>
+                    <input type="text" value="{{ usuario['cpf'] }}" class="readonly" readonly id="cpf_visual">
+                </div>
+                <div class="col-full">
+                    <label style="color: #e67e22;"><i class="fa-solid fa-user-tag"></i> Nome Social</label>
+                    <input type="text" name="nome_social" value="{{ usuario['nome_social'] if usuario['nome_social'] else '' }}" placeholder="Como você prefere ser chamado(a)?">
+                </div>
+            </div>
+
+            <div class="section-title"><i class="fa-solid fa-address-book" style="color: #3498db;"></i> Contato</div>
+            <div class="form-grid">
+                <div>
+                    <label>E-mail</label>
+                    <input type="email" name="email" value="{{ usuario['email'] if usuario['email'] else '' }}" placeholder="seu@email.com">
+                </div>
+                <div>
+                    <label>Telefone / WhatsApp</label>
+                    <input type="text" name="telefone" id="telefone" value="{{ usuario['telefone'] if usuario['telefone'] else '' }}" placeholder="(00) 00000-0000" maxlength="15">
+                </div>
+            </div>
+
+            <div class="section-title"><i class="fa-solid fa-map-location-dot" style="color: #3498db;"></i> Endereço</div>
+            
+            <div class="form-grid col-3" style="margin-bottom: 15px;">
+                <div>
+                    <label>CEP (Apenas números)</label>
+                    <input type="text" name="cep" id="cep" value="{{ usuario['cep'] if usuario['cep'] else '' }}" placeholder="00000-000" maxlength="9">
+                </div>
+                <div>
+                    <label>Rua / Logradouro</label>
+                    <input type="text" name="logradouro" id="logradouro" value="{{ usuario['logradouro'] if usuario['logradouro'] else '' }}" placeholder="Ex: Rua das Flores">
+                </div>
+            </div>
+
+            <div class="form-grid col-4">
+                <div>
+                    <label>Número</label>
+                    <input type="text" name="numero" id="numero" value="{{ usuario['numero'] if usuario['numero'] else '' }}" placeholder="Nº">
+                </div>
+                <div style="grid-column: span 2;">
+                    <label>Bairro</label>
+                    <input type="text" name="bairro" id="bairro" value="{{ usuario['bairro'] if usuario['bairro'] else '' }}">
+                </div>
+                <div>
+                    <label>Complemento</label>
+                    <input type="text" name="complemento" value="{{ usuario['complemento'] if usuario['complemento'] else '' }}" placeholder="Apto, Casa 2">
+                </div>
+            </div>
+
+            <div class="form-grid" style="margin-top: 15px;">
+                <div>
+                    <label>Cidade</label>
+                    <input type="text" name="cidade" id="cidade" value="{{ usuario['cidade'] if usuario['cidade'] else '' }}" class="readonly" readonly>
+                </div>
+                <div>
+                    <label>Estado (UF)</label>
+                    <input type="text" name="uf" id="uf" value="{{ usuario['uf'] if usuario['uf'] else '' }}" class="readonly" readonly>
+                </div>
+            </div>
+
+            <button type="submit"><i class="fa-solid fa-floppy-disk"></i> Salvar Informações</button>
+        </form>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 1. Impedir o Enter de enviar o formulário e pular para o próximo campo
+            const inputs = document.querySelectorAll('input');
+            inputs.forEach((input, index) => {
+                input.addEventListener('keydown', function(event) {
+                    if (event.key === 'Enter') {
+                        event.preventDefault(); // Impede o envio
+                        // Pula para o próximo campo se existir e não for readonly
+                        let nextInput = inputs[index + 1];
+                        while(nextInput && nextInput.readOnly) {
+                            nextInput = inputs[Array.prototype.indexOf.call(inputs, nextInput) + 1];
+                        }
+                        if(nextInput) nextInput.focus();
+                    }
+                });
+            });
+
+            // 2. Máscara de Telefone (15 caracteres)
+            const inputTel = document.getElementById('telefone');
+            inputTel.addEventListener('input', function(e) {
+                let x = e.target.value.replace(/\D/g, '').match(/(\d{0,2})(\d{0,5})(\d{0,4})/);
+                e.target.value = !x[2] ? x[1] : '(' + x[1] + ') ' + x[2] + (x[3] ? '-' + x[3] : '');
+            });
+
+            // 3. Máscara de CEP e Busca Automática ViaCEP
+            const cepInput = document.getElementById('cep');
+            cepInput.addEventListener('input', function(e) {
+                let x = e.target.value.replace(/\D/g, '').match(/(\d{0,5})(\d{0,3})/);
+                e.target.value = !x[2] ? x[1] : x[1] + '-' + x[2];
+            });
+
+            cepInput.addEventListener('blur', async function() {
+                let cepVal = this.value.replace(/\D/g, ''); 
+                if (cepVal.length === 8) {
+                    document.getElementById('logradouro').value = "Buscando...";
+                    try {
+                        const response = await fetch(`https://viacep.com.br/ws/${cepVal}/json/`);
+                        const data = await response.json();
+                        if (!data.erro) {
+                            document.getElementById('logradouro').value = data.logradouro;
+                            document.getElementById('bairro').value = data.bairro;
+                            document.getElementById('cidade').value = data.localidade;
+                            document.getElementById('uf').value = data.uf;
+                            document.getElementById('numero').focus(); 
+                        } else {
+                            alert("CEP não encontrado.");
+                            document.getElementById('logradouro').value = "";
+                        }
+                    } catch (error) {
+                        alert("Erro na busca do CEP.");
+                    }
+                }
+            });
+
+            // 4. Formatação visual do CPF (Apenas para exibir bonito)
+            const cpfVisual = document.getElementById('cpf_visual');
+            if(cpfVisual.value) {
+                cpfVisual.value = cpfVisual.value.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+            }
+        });
+    </script>
+</body>
+</html>

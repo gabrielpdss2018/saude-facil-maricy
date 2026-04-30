@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard - Gestão Saúde Fácil</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f4f6f9; padding: 20px; color: #2c3e50; margin: 0;}
+        .top-bar { background-color: #1e272e; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; margin: -20px -20px 30px -20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);}
+        .top-bar h2 { margin: 0; font-size: 18px; font-weight: normal;}
+        .top-bar strong { color: #8e44ad; }
+        .btn-sair { color: #e74c3c; text-decoration: none; font-weight: bold; background: white; padding: 8px 15px; border-radius: 20px; font-size: 14px;}
+        
+        .container { max-width: 1100px; margin: 0 auto; }
+        
+        .kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; }
+        .kpi-card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: space-between; border-left: 5px solid; transition: 0.3s;}
+        .kpi-card h3 { margin: 0; color: #7f8c8d; font-size: 14px; text-transform: uppercase; }
+        .kpi-card .valor { font-size: 35px; font-weight: bold; color: #2c3e50; margin: 5px 0 0 0;}
+        .kpi-card i { font-size: 40px; opacity: 0.2; transition: 0.3s;}
+        
+        .kpi-total { border-left-color: #3498db; } .kpi-total i { color: #3498db; }
+        .kpi-ok { border-left-color: #27ae60; } .kpi-ok i { color: #27ae60; }
+        .kpi-falta { border-left-color: #e74c3c; } .kpi-falta i { color: #e74c3c; }
+
+        .btn-cadastro { text-decoration: none; display: block; }
+        .btn-cadastro .kpi-card { border-left-color: #8e44ad; cursor: pointer; }
+        .btn-cadastro:hover .kpi-card { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(142, 68, 173, 0.15); }
+        .btn-cadastro:hover i { opacity: 0.8; color: #8e44ad; transform: scale(1.1); }
+
+        .conteudo-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 20px; }
+        .box { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .box-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #ecf0f1; padding-bottom: 10px;}
+        .box-header h3 { margin: 0; color: #2c3e50; }
+        
+        .btn-exportar { background-color: #27ae60; color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px; transition: 0.2s;}
+        .btn-exportar:hover { background-color: #2ecc71; }
+
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #edf2f7; font-size: 14px;}
+        th { color: #7f8c8d; text-transform: uppercase; }
+        td { font-weight: 500; }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <h2><i class="fa-solid fa-chart-pie"></i> Painel Administrativo | <strong>{{ nome }}</strong></h2>
+        <a href="/logout_gestor" class="btn-sair"><i class="fa-solid fa-power-off"></i> Sair do Sistema</a>
+    </div>
+
+    <div class="container">
+        
+        <div class="box-header" style="margin-bottom: 20px;">
+            <h3 style="color: #8e44ad;"><i class="fa-solid fa-gears"></i> Gestão de Estrutura</h3>
+        </div>
+        <!-- AGORA SÃO 3 COLUNAS PARA OS 3 BOTÕES -->
+        <div class="kpi-grid">
+            <a href="/cadastrar_ubs" class="btn-cadastro">
+                <div class="kpi-card">
+                    <div><h3 style="color: #8e44ad;">Cadastrar Nova</h3><p class="valor" style="font-size: 22px;">Unidade (UBS)</p></div>
+                    <i class="fa-solid fa-hospital-user"></i>
+                </div>
+            </a>
+            <a href="/cadastrar_servico" class="btn-cadastro">
+                <div class="kpi-card">
+                    <div><h3 style="color: #8e44ad;">Adicionar Novo</h3><p class="valor" style="font-size: 22px;">Serviço Clínico</p></div>
+                    <i class="fa-solid fa-notes-medical"></i>
+                </div>
+            </a>
+            <a href="/cadastrar_profissional" class="btn-cadastro">
+                <div class="kpi-card">
+                    <div><h3 style="color: #8e44ad;">Alocar Novo</h3><p class="valor" style="font-size: 22px;">Profissional / Médico</p></div>
+                    <i class="fa-solid fa-user-doctor"></i>
+                </div>
+            </a>
+        </div>
+
+        <div class="box-header" style="margin-top: 40px; margin-bottom: 20px;">
+            <h3><i class="fa-solid fa-chart-line"></i> Desempenho da Rede</h3>
+        </div>
+
+        <div class="kpi-grid">
+            <div class="kpi-card kpi-total">
+                <div><h3>Total de Agendamentos</h3><p class="valor">{{ total }}</p></div>
+                <i class="fa-solid fa-calendar-check"></i>
+            </div>
+            <div class="kpi-card kpi-ok">
+                <div><h3>Atendimentos Concluídos</h3><p class="valor">{{ finalizados }}</p></div>
+                <i class="fa-solid fa-check-double"></i>
+            </div>
+            <div class="kpi-card kpi-falta">
+                <div><h3>Faltas / Cancelamentos</h3><p class="valor">{{ cancelados }}</p></div>
+                <i class="fa-solid fa-user-xmark"></i>
+            </div>
+        </div>
+
+        <div class="conteudo-grid">
+            <div class="box">
+                <div class="box-header"><h3>Visão Geral</h3></div>
+                <canvas id="graficoStatus"></canvas>
+            </div>
+
+            <div class="box">
+                <div class="box-header">
+                    <h3>Relatório Consolidado por UBS</h3>
+                    <button class="btn-exportar" onclick="exportarCSV()"><i class="fa-solid fa-file-csv"></i> Exportar CSV</button>
+                </div>
+                <table id="tabelaRelatorio">
+                    <thead>
+                        <tr>
+                            <th>Unidade de Saúde (UBS)</th>
+                            <th>Total Agendado</th>
+                            <th>Atendidos</th>
+                            <th>Faltas/Cancelados</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in relatorio_ubs %}
+                        <tr>
+                            <td><strong>{{ r['ubs_nome'] }}</strong></td>
+                            <td>{{ r['total'] }}</td>
+                            <td style="color: #27ae60;">{{ r['concluidos'] }}</td>
+                            <td style="color: #e74c3c;">{{ r['faltas'] }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const ctx = document.getElementById('graficoStatus').getContext('2d');
+        const graficoStatus = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Concluídos', 'Faltas', 'Pendentes'],
+                datasets: [{
+                    data: [{{ finalizados }}, {{ cancelados }}, {{ total - finalizados - cancelados }}],
+                    backgroundColor: ['#27ae60', '#e74c3c', '#f39c12'],
+                    borderWidth: 0
+                }]
+            },
+            options: { cutout: '70%', plugins: { legend: { position: 'bottom' } } }
+        });
+
+        function exportarCSV() {
+            let tabela = document.getElementById("tabelaRelatorio");
+            let linhas = tabela.querySelectorAll("tr");
+            let csv = [];
+            for (let i = 0; i < linhas.length; i++) {
+                let linha = [], cols = linhas[i].querySelectorAll("td, th");
+                for (let j = 0; j < cols.length; j++) linha.push('"' + cols[j].innerText + '"'); 
+                csv.push(linha.join(";")); 
+            }
+            let csvArquivo = new Blob([csv.join("\n")], { type: "text/csv;charset=utf-8;" });
+            let link = document.createElement("a");
+            link.href = URL.createObjectURL(csvArquivo);
+            link.setAttribute("download", "Relatorio_Saude_Facil.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>

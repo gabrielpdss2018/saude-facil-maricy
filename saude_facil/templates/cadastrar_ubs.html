@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Cadastrar UBS - Saúde Fácil</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f4f6f9; padding: 20px; color: #2c3e50; margin: 0;}
+        .top-bar { background-color: #1e272e; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; margin: -20px -20px 30px -20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);}
+        .container { max-width: 600px; margin: 40px auto; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border-top: 5px solid #8e44ad;}
+        h2.title { color: #2c3e50; margin-top: 0; border-bottom: 2px solid #ecf0f1; padding-bottom: 15px;}
+        
+        label { display: block; font-weight: bold; color: #34495e; margin: 20px 0 8px 0; font-size: 15px;}
+        .input-icon { position: relative; }
+        .input-icon i.fa-solid { position: absolute; left: 15px; top: 14px; color: #95a5a6; }
+        input[type="text"] { width: 100%; padding: 14px 14px 14px 45px; border: 2px solid #ecf0f1; border-radius: 8px; box-sizing: border-box; font-size: 15px; transition: 0.3s; background-color: #fbfcfc;}
+        input[type="text"]:focus { border-color: #8e44ad; outline: none; }
+        
+        .servicos-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;}
+        .check-card { border: 2px solid #ecf0f1; border-radius: 8px; padding: 10px; display: flex; align-items: center; gap: 10px; cursor: pointer; transition: 0.2s;}
+        .check-card:hover { border-color: #8e44ad; background-color: #f5eef8;}
+        .check-card input { transform: scale(1.3); cursor: pointer; margin: 0;}
+        
+        button { width: 100%; padding: 16px; background-color: #8e44ad; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; margin-top: 30px; transition: 0.3s; }
+        button:hover { background-color: #732d91; transform: translateY(-2px); }
+        .sucesso { background-color: #d1fae5; color: #059669; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-weight: bold; text-align: center; border: 1px solid #34d399;}
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <h2><i class="fa-solid fa-chart-pie"></i> Painel Administrativo | <strong style="color: #8e44ad;">{{ nome }}</strong></h2>
+    </div>
+
+    <div class="container">
+        <h2 class="title"><i class="fa-solid fa-hospital" style="color: #8e44ad;"></i> Cadastrar Nova UBS</h2>
+        
+        {% if mensagem %} <div class="sucesso"><i class="fa-solid fa-check-circle"></i> {{ mensagem }}</div> {% endif %}
+
+        <form method="POST" action="/cadastrar_ubs">
+            <label>Nome da Unidade de Saúde</label>
+            <div class="input-icon">
+                <i class="fa-solid fa-signature"></i>
+                <input type="text" name="nome" placeholder="Ex: UBS Central" required>
+            </div>
+
+            <label>Endereço Completo</label>
+            <div class="input-icon">
+                <i class="fa-solid fa-map-location-dot"></i>
+                <input type="text" name="endereco" placeholder="Ex: Rua das Flores, 123" required>
+            </div>
+
+            <label><i class="fa-solid fa-stethoscope"></i> Quais serviços esta UBS oferece?</label>
+            <div class="servicos-grid">
+                {% for s in servicos %}
+                <label class="check-card">
+                    <input type="checkbox" name="servicos" value="{{ s['id'] }}">
+                    <span><i class="fa-solid {{ s['icone'] }}" style="color: #7f8c8d; margin-right: 5px;"></i> {{ s['nome'] }}</span>
+                </label>
+                {% endfor %}
+            </div>
+
+            <button type="submit"><i class="fa-solid fa-plus-circle"></i> Salvar Unidade e Serviços</button>
+        </form>
+        
+        <a href="/painel_gestor" style="display: inline-block; margin-top: 20px; color: #7f8c8d; text-decoration: none; font-weight: bold;"><i class="fa-solid fa-arrow-left"></i> Voltar ao Dashboard</a>
+    </div>
+</body>
+</html>

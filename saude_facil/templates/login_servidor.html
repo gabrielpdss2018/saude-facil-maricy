@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Acesso Servidor - Saúde Fácil</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #2c3e50; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .login-container { background-color: white; padding: 40px; border-radius: 12px; box-shadow: 0 15px 35px rgba(0,0,0,0.3); width: 340px; text-align: center; border-top: 5px solid #e67e22; }
+        .input-icon { position: relative; margin-top: 15px; }
+        .input-icon i { position: absolute; left: 15px; top: 14px; color: #95a5a6; }
+        input { width: 100%; padding: 12px 12px 12px 40px; border: 1px solid #dcdde1; border-radius: 8px; box-sizing: border-box; transition: 0.3s; background-color: #fcfcfc; font-size: 15px;}
+        input:focus { border-color: #e67e22; outline: none; }
+        button { width: 100%; padding: 14px; background-color: #e67e22; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; margin-top: 25px; transition: 0.3s; }
+        button:hover { background-color: #d35400; }
+        .erro { background-color: #fee2e2; color: #dc2626; padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size: 14px; font-weight: 600; }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <i class="fa-solid fa-user-doctor" style="font-size: 45px; color: #e67e22; margin-bottom: 10px;"></i>
+        <h2 style="color: #2c3e50; margin-top: 0;">Portal do Servidor</h2>
+        <p style="color: #7f8c8d; font-size: 14px; margin-top: -10px;">Rede de Saúde Municipal</p>
+        
+        {% if erro %} <div class="erro"><i class="fa-solid fa-circle-exclamation"></i> {{ erro }}</div> {% endif %}
+
+        <form method="POST" action="/login_servidor">
+            <div class="input-icon">
+                <i class="fa-solid fa-id-badge"></i>
+                <input type="text" name="login" placeholder="Matrícula / Login" required>
+            </div>
+            <div class="input-icon">
+                <i class="fa-solid fa-key"></i>
+                <input type="password" name="senha" placeholder="Senha" required>
+            </div>
+            <button type="submit"><i class="fa-solid fa-right-to-bracket"></i> Acessar Painel</button>
+        </form>
+        <a href="/" style="display: block; margin-top: 20px; color: #7f8c8d; text-decoration: none; font-size: 13px;">⬅ Voltar ao portal do Cidadão</a>
+    </div>
+</body>
+</html>

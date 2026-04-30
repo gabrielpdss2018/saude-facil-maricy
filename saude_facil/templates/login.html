@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Login - Saúde Fácil</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f0f4f8; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .login-container { background-color: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); width: 340px; text-align: center; border-top: 5px solid #1abc9c; }
+        .input-icon { position: relative; margin-top: 15px; }
+        .input-icon i { position: absolute; left: 15px; top: 14px; color: #95a5a6; }
+        input { width: 100%; padding: 12px 12px 12px 40px; border: 1px solid #dcdde1; border-radius: 8px; box-sizing: border-box; transition: 0.3s; background-color: #fcfcfc; font-size: 15px;}
+        input:focus { border-color: #1abc9c; outline: none; box-shadow: 0 0 0 3px rgba(26,188,156,0.2); }
+        button { width: 100%; padding: 14px; background-color: #1abc9c; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; margin-top: 20px; transition: 0.3s; }
+        button:hover { background-color: #16a085; transform: translateY(-2px); }
+        .links a { color: #3498db; text-decoration: none; font-weight: bold; font-size: 14px; }
+        .erro { background-color: #fee2e2; color: #dc2626; padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size: 14px; font-weight: 600; }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <i class="fa-solid fa-notes-medical" style="font-size: 40px; color: #1abc9c; margin-bottom: 15px;"></i>
+        <h2 style="color: #2c3e50; margin-top: 0;">Acesso Cidadão</h2>
+        
+        {% if erro %} <div class="erro"><i class="fa-solid fa-circle-exclamation"></i> {{ erro }}</div> {% endif %}
+
+        <form method="POST" action="/login">
+            <div class="input-icon">
+                <i class="fa-regular fa-id-card"></i>
+                <input type="text" name="cpf_sus" id="login_doc" placeholder="CPF ou Cartão SUS" required maxlength="18">
+            </div>
+            <div class="input-icon">
+                <i class="fa-solid fa-lock"></i>
+                <input type="password" name="senha" placeholder="Sua Senha" required>
+            </div>
+            <button type="submit"><i class="fa-solid fa-right-to-bracket"></i> Entrar no Sistema</button>
+        </form>
+        <div class="links" style="margin-top: 25px;">
+            <p style="color: #7f8c8d; font-size: 14px;">Não tem cadastro? <a href="/registro">Criar Conta</a></p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 1. Bloqueia o Enter (só não bloqueia no campo de senha, para permitir enviar)
+            const inputDoc = document.getElementById('login_doc');
+            const inputSenha = document.querySelector('input[type="password"]');
+            
+            inputDoc.addEventListener('keydown', function(event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    inputSenha.focus();
+                }
+            });
+
+            // 2. Máscara Dinâmica (Reconhece se é CPF ou SUS pelo tamanho)
+            inputDoc.addEventListener('input', function(e) {
+                let v = e.target.value.replace(/\D/g, ''); // Tira tudo que não é número
+                
+                if (v.length <= 11) {
+                    // Formata como CPF
+                    let x = v.match(/(\d{0,3})(\d{0,3})(\d{0,3})(\d{0,2})/);
+                    e.target.value = !x[2] ? x[1] : x[1] + '.' + x[2] + (x[3] ? '.' + x[3] : '') + (x[4] ? '-' + x[4] : '');
+                } else {
+                    // Passou de 11, formata como SUS (15 digitos)
+                    let x = v.match(/(\d{0,3})(\d{0,4})(\d{0,4})(\d{0,4})/);
+                    e.target.value = !x[2] ? x[1] : x[1] + ' ' + x[2] + (x[3] ? ' ' + x[3] : '') + (x[4] ? ' ' + x[4] : '');
+                }
+            });
+
+            // 3. Limpa a máscara antes de ir pro servidor (para bater com o banco)
+            document.querySelector('form').addEventListener('submit', function() {
+                inputDoc.value = inputDoc.value.replace(/\D/g, '');
+            });
+        });
+    </script>
+</body>
+</html>

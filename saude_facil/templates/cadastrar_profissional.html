@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Cadastrar Profissional - Saúde Fácil</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f4f6f9; padding: 20px; color: #2c3e50; margin: 0;}
+        .top-bar { background-color: #1e272e; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; margin: -20px -20px 30px -20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);}
+        .top-bar h2 { margin: 0; font-size: 18px; font-weight: normal;}
+        .top-bar strong { color: #8e44ad; }
+        
+        .container { max-width: 600px; margin: 40px auto; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border-top: 5px solid #8e44ad;}
+        h2.title { color: #2c3e50; margin-top: 0; border-bottom: 2px solid #ecf0f1; padding-bottom: 15px;}
+        
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        label { display: block; font-weight: bold; color: #34495e; margin: 15px 0 8px 0; font-size: 14px;}
+        .input-icon { position: relative; }
+        .input-icon i { position: absolute; left: 15px; top: 14px; color: #95a5a6; }
+        input, select { width: 100%; padding: 14px 14px 14px 45px; border: 2px solid #ecf0f1; border-radius: 8px; box-sizing: border-box; font-size: 15px; transition: 0.3s; background-color: #fbfcfc;}
+        input:focus, select:focus { border-color: #8e44ad; outline: none; }
+        
+        button { width: 100%; padding: 16px; background-color: #8e44ad; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; margin-top: 30px; transition: 0.3s; }
+        button:hover { background-color: #732d91; transform: translateY(-2px); }
+        
+        .sucesso { background-color: #d1fae5; color: #059669; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-weight: bold; text-align: center; border: 1px solid #34d399;}
+        .erro { background-color: #fee2e2; color: #dc2626; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-weight: bold; text-align: center; border: 1px solid #f87171;}
+        .btn-voltar { display: inline-block; margin-top: 20px; color: #7f8c8d; text-decoration: none; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <h2><i class="fa-solid fa-chart-pie"></i> Painel Administrativo | <strong>{{ nome }}</strong></h2>
+    </div>
+
+    <div class="container">
+        <h2 class="title"><i class="fa-solid fa-user-doctor" style="color: #8e44ad;"></i> Alocar Profissional</h2>
+        
+        {% if mensagem %} <div class="sucesso"><i class="fa-solid fa-check-circle"></i> {{ mensagem }}</div> {% endif %}
+        {% if erro %} <div class="erro"><i class="fa-solid fa-circle-exclamation"></i> {{ erro }}</div> {% endif %}
+
+        <form method="POST" action="/cadastrar_profissional">
+            <label>Nome Completo do Profissional</label>
+            <div class="input-icon">
+                <i class="fa-solid fa-user-tie"></i>
+                <input type="text" name="nome" placeholder="Ex: Dr. João Pedro" required>
+            </div>
+
+            <div class="form-grid">
+                <div>
+                    <label>Cargo / Especialidade</label>
+                    <div class="input-icon">
+                        <i class="fa-solid fa-stethoscope"></i>
+                        <input type="text" name="cargo" placeholder="Ex: Médico" required>
+                    </div>
+                </div>
+                <div>
+                    <label>Lotação (Em qual UBS?)</label>
+                    <div class="input-icon">
+                        <i class="fa-solid fa-hospital"></i>
+                        <select name="ubs_id" required>
+                            <option value="">Selecione...</option>
+                            {% for u in ubs %}
+                                <option value="{{ u['id'] }}">{{ u['nome'] }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <h3 style="color: #34495e; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-top: 30px;">Dados de Acesso (Login)</h3>
+
+            <div class="form-grid">
+                <div>
+                    <label>Matrícula ou Usuário</label>
+                    <div class="input-icon">
+                        <i class="fa-solid fa-id-badge"></i>
+                        <input type="text" name="login" placeholder="Ex: joao.med" required>
+                    </div>
+                </div>
+                <div>
+                    <label>Senha Provisória</label>
+                    <div class="input-icon">
+                        <i class="fa-solid fa-key"></i>
+                        <input type="password" name="senha" placeholder="Digite uma senha" required>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit"><i class="fa-solid fa-user-plus"></i> Finalizar Cadastro</button>
+        </form>
+        
+        <a href="/painel_gestor" class="btn-voltar"><i class="fa-solid fa-arrow-left"></i> Voltar ao Dashboard</a>
+    </div>
+</body>
+</html>

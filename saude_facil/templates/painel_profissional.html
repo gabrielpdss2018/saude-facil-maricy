@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Painel da UBS - Saúde Fácil</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f0f4f8; padding: 20px; color: #2c3e50; margin: 0;}
+        .top-bar { background-color: #2c3e50; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; border-radius: 0 0 15px 15px; margin: -20px -20px 30px -20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);}
+        .top-bar h2 { margin: 0; font-size: 18px; font-weight: normal;}
+        .top-bar strong { color: #e67e22; }
+        .btn-sair { color: #e74c3c; text-decoration: none; font-weight: bold; background: white; padding: 8px 15px; border-radius: 20px;}
+        
+        .container { max-width: 1000px; margin: 0 auto; }
+        .header-painel { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;}
+        
+        .paciente-card { background: white; border-radius: 12px; padding: 20px; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; border-left: 5px solid #bdc3c7;}
+        .paciente-card.status-pendente { border-left-color: #f39c12; }
+        .paciente-card.status-em_andamento { border-left-color: #3498db; background-color: #ebf5fb;}
+        .paciente-card.status-finalizado { border-left-color: #27ae60; opacity: 0.7;}
+        .paciente-card.status-cancelado { border-left-color: #e74c3c; opacity: 0.5;}
+        
+        .paciente-info h3 { margin: 0 0 5px 0; color: #2c3e50; }
+        .paciente-info p { margin: 0; color: #7f8c8d; font-size: 14px; }
+        
+        .acoes form { display: inline-block; margin-left: 5px; }
+        .btn-acao { padding: 10px 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; color: white; transition: 0.2s;}
+        .btn-chamar { background-color: #3498db; }
+        .btn-chamar:hover { background-color: #2980b9; }
+        .btn-concluir { background-color: #27ae60; }
+        .btn-concluir:hover { background-color: #2ecc71; }
+        .btn-falta { background-color: #e74c3c; }
+        .btn-falta:hover { background-color: #c0392b; }
+        
+        .obs-input { padding: 8px; border: 1px solid #ccc; border-radius: 5px; width: 200px; margin-right: 10px;}
+    </style>
+</head>
+<body>
+
+    <div class="top-bar">
+        <h2><i class="fa-solid fa-user-doctor"></i> <strong>{{ ubs }}</strong> | Olá, {{ nome }}</h2>
+        <a href="/logout_servidor" class="btn-sair"><i class="fa-solid fa-power-off"></i> Encerrar Plantão</a>
+    </div>
+
+    <div class="container">
+        <div class="header-painel">
+            <h1 style="margin: 0; color: #2c3e50;">Pacientes Agendados para Hoje</h1>
+            <span style="background: #e67e22; color: white; padding: 8px 15px; border-radius: 20px; font-weight: bold;">
+                <i class="fa-solid fa-calendar-day"></i> {{ hoje[8:10] }}/{{ hoje[5:7] }}/{{ hoje[0:4] }}
+            </span>
+        </div>
+
+        {% if not pacientes %}
+            <div style="text-align: center; padding: 50px; background: white; border-radius: 12px;">
+                <i class="fa-solid fa-mug-hot" style="font-size: 50px; color: #bdc3c7; margin-bottom: 15px;"></i>
+                <h3 style="color: #7f8c8d;">Nenhum paciente agendado para o dia de hoje.</h3>
+            </div>
+        {% endif %}
+
+        {% for p in pacientes %}
+            <div class="paciente-card status-{{ p['status'] | lower | replace(' ', '_') }}">
+                <div class="paciente-info">
+                    <h3>{{ p['horario_atendimento'] }} - {{ p['paciente_nome'] }}</h3>
+                    <p><strong>CPF:</strong> {{ p['paciente_cpf'] }} | <strong>Serviço:</strong> {{ p['servico_nome'] }}</p>
+                    <p><strong>Protocolo:</strong> {{ p['protocolo'] }} | <strong>Status:</strong> {{ p['status'] }}</p>
+                    
+                    {% if p['observacoes_medicas'] %}
+                        <p style="margin-top: 10px; color: #e67e22;"><i class="fa-solid fa-notes-medical"></i> Obs: {{ p['observacoes_medicas'] }}</p>
+                    {% endif %}
+                </div>
+                
+                <div class="acoes">
+                    {% if p['status'] == 'PENDENTE' %}
+                        <form method="POST" action="/atualizar_status/{{ p['protocolo'] }}">
+                            <input type="hidden" name="status" value="EM ANDAMENTO">
+                            <button type="submit" class="btn-acao btn-chamar"><i class="fa-solid fa-bullhorn"></i> Chamar (Check-in)</button>
+                        </form>
+                        <form method="POST" action="/atualizar_status/{{ p['protocolo'] }}" onsubmit="return confirm('Confirmar falta do paciente?');">
+                            <input type="hidden" name="status" value="CANCELADO"> <button type="submit" class="btn-acao btn-falta"><i class="fa-solid fa-user-xmark"></i> Faltou</button>
+                        </form>
+
+                    {% elif p['status'] == 'EM ANDAMENTO' %}
+                        <form method="POST" action="/atualizar_status/{{ p['protocolo'] }}">
+                            <input type="hidden" name="status" value="FINALIZADO">
+                            <input type="text" name="observacoes" class="obs-input" placeholder="Receituário, sintomas..." required>
+                            <button type="submit" class="btn-acao btn-concluir"><i class="fa-solid fa-check-double"></i> Concluir Atendimento</button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+</body>
+</html>
