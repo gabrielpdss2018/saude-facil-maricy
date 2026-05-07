@@ -20,26 +20,33 @@
         .header-historico { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #ecf0f1; padding-bottom: 15px; }
         h2 { margin: 0; font-size: 22px; color: #2c3e50; }
         
-        /* Estilo das Abas (Tabela vs Calendário) */
         .tabs { display: flex; gap: 10px; }
         .tab-btn { background-color: #ecf0f1; color: #7f8c8d; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; font-size: 14px; }
         .tab-btn.active { background-color: #3498db; color: white; box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3); }
         
-        /* Views */
         .view-content { display: none; }
         .view-content.active { display: block; animation: fadeIn 0.4s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Tabela */
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th, td { padding: 16px; text-align: left; border-bottom: 1px solid #edf2f7; }
         th { background-color: #f8fafc; color: #7f8c8d; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; border-radius: 8px 8px 0 0;}
+        
         .status-badge { padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; }
         .status-pendente { background-color: #fef3c7; color: #d97706; }
-        .status-cancelado { background-color: #fee2e2; color: #dc2626; text-decoration: line-through; }
+        .status-reagendamento_solicitado { background-color: #fee2e2; color: #dc2626; animation: pulse 2s infinite; }
         .status-finalizado { background-color: #d1fae5; color: #059669; }
-        .btn-cancelar { padding: 8px 15px; background-color: #e74c3c; color: white; text-decoration: none; border-radius: 6px; font-size: 13px; font-weight: bold; transition: 0.3s; display: inline-flex; align-items: center; gap: 5px; }
+        .status-cancelado { background-color: #f1f5f9; color: #94a3b8; text-decoration: line-through; }
+        
+        .btn-acao { padding: 8px 15px; color: white; text-decoration: none; border-radius: 6px; font-size: 13px; font-weight: bold; transition: 0.3s; display: inline-flex; align-items: center; gap: 5px; margin-right: 5px; }
+        .btn-cancelar { background-color: #e74c3c; }
         .btn-cancelar:hover { background-color: #c0392b; }
+        .btn-reagendar { background-color: #3498db; }
+        .btn-reagendar:hover { background-color: #2980b9; }
+
+        .aviso-reagendar { background-color: #fee2e2; border: 1px solid #fecaca; color: #b91c1c; padding: 15px; border-radius: 10px; margin-bottom: 20px; display: flex; align-items: center; gap: 15px; font-weight: bold; }
+        
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
 
         /* Calendário (Ajustes FullCalendar) */
         #calendario-view { padding-top: 10px; }
@@ -48,13 +55,6 @@
         .fc-toolbar-title { font-size: 18px !important; color: #2c3e50; font-weight: bold; text-transform: capitalize;}
         .fc-button-primary { background-color: #3498db !important; border: none !important; text-transform: capitalize;}
         .fc-button-primary:hover { background-color: #2980b9 !important; }
-        
-        /* Modal de Detalhes do Evento do Calendário */
-        .modal-detalhes { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
-        .modal-content { background: white; padding: 25px; border-radius: 12px; width: 350px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); position: relative;}
-        .modal-close { position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 20px; color: #7f8c8d; cursor: pointer; }
-        .modal-title { color: #2c3e50; margin-top: 0; border-bottom: 1px solid #eee; padding-bottom: 10px;}
-        .modal-info { margin: 15px 0; font-size: 15px; color: #34495e; line-height: 1.6;}
     </style>
 </head>
 <body>
@@ -70,21 +70,30 @@
     <div class="container">
         <div class="header-historico">
             <h2><i class="fa-solid fa-clock-rotate-left" style="color: #3498db;"></i> Seu Histórico</h2>
-            
             <div class="tabs">
-                <button class="tab-btn active" onclick="trocarAba('lista')"><i class="fa-solid fa-list"></i> Tabela</button>
+                <button class="tab-btn active" onclick="trocarAba('lista')"><i class="fa-solid fa-list"></i> Lista</button>
                 <button class="tab-btn" onclick="trocarAba('calendario')"><i class="fa-regular fa-calendar-days"></i> Calendário</button>
             </div>
         </div>
+
+        {% for a in agendamentos %}
+            {% if a['status'] == 'REAGENDAMENTO SOLICITADO' %}
+            <div class="aviso-reagendar">
+                <i class="fa-solid fa-circle-exclamation fa-2x"></i>
+                <div>
+                    Atenção: A UBS solicitou o reagendamento da sua consulta de {{ a['servico_nome'] }}.
+                    <br><a href="/reagendar/{{ a['protocolo'] }}" style="color: #b91c1c; text-decoration: underline;">Clique aqui para escolher uma nova data</a>
+                </div>
+            </div>
+            {% endif %}
+        {% endfor %}
         
         <div id="lista-view" class="view-content active">
             <table>
                 <thead>
                     <tr>
                         <th><i class="fa-solid fa-calendar-day"></i> Data / Hora</th>
-                        <th><i class="fa-solid fa-hospital"></i> Unidade</th>
-                        <th><i class="fa-solid fa-stethoscope"></i> Serviço</th>
-                        <th><i class="fa-solid fa-barcode"></i> Protocolo</th>
+                        <th><i class="fa-solid fa-hospital"></i> UBS / Serviço</th>
                         <th><i class="fa-solid fa-circle-info"></i> Status</th>
                         <th>Ação</th>
                     </tr>
@@ -92,7 +101,7 @@
                 <tbody>
                     {% if not agendamentos %}
                     <tr>
-                        <td colspan="6" style="text-align: center; color: #7f8c8d; padding: 40px;">
+                        <td colspan="4" style="text-align: center; color: #7f8c8d; padding: 40px;">
                             <i class="fa-solid fa-folder-open" style="font-size: 30px; margin-bottom: 10px; color: #bdc3c7;"></i><br>
                             Você não possui agendamentos registrados.
                         </td>
@@ -105,15 +114,12 @@
                             {{ a['data_atendimento'][8:10] }}/{{ a['data_atendimento'][5:7] }}/{{ a['data_atendimento'][0:4] }} 
                             <br><span style="color: #7f8c8d; font-size: 13px;"><i class="fa-regular fa-clock"></i> {{ a['horario_atendimento'] }}</span>
                         </td>
-                        <td>{{ a['ubs_nome'] }}</td>
-                        <td>{{ a['servico_nome'] }}</td>
-                        <td style="font-family: monospace; font-size: 16px;"><strong>{{ a['protocolo'] }}</strong></td>
-                        <td><span class="status-badge status-{{ a['status'] | lower }}">{{ a['status'] }}</span></td>
+                        <td>{{ a['ubs_nome'] }}<br><small style="color: #7f8c8d;">{{ a['servico_nome'] }} ({{ a['protocolo'] }})</small></td>
+                        <td><span class="status-badge status-{{ a['status'] | lower | replace(' ', '_') }}">{{ a['status'] }}</span></td>
                         <td>
-                            {% if a['status'] == 'PENDENTE' %}
-                                <a href="/cancelar/{{ a['protocolo'] }}" class="btn-cancelar" onclick="return confirm('Confirmar o cancelamento? A vaga será liberada imediatamente.');">
-                                    <i class="fa-solid fa-ban"></i> Cancelar
-                                </a>
+                            {% if a['status'] in ['PENDENTE', 'REAGENDAMENTO SOLICITADO'] %}
+                                <a href="/reagendar/{{ a['protocolo'] }}" class="btn-acao btn-reagendar"><i class="fa-solid fa-calendar-days"></i> Reagendar</a>
+                                <a href="/cancelar/{{ a['protocolo'] }}" class="btn-acao btn-cancelar" onclick="return confirm('Tem certeza que deseja cancelar?');"><i class="fa-solid fa-ban"></i></a>
                             {% else %}
                                 <span style="color: #cbd5e1;"><i class="fa-solid fa-minus"></i></span>
                             {% endif %}
@@ -126,93 +132,35 @@
 
         <div id="calendario-view" class="view-content">
             <div id="calendar"></div>
-            
             <div style="margin-top: 15px; font-size: 12px; color: #7f8c8d; display: flex; gap: 15px; justify-content: center;">
                 <span><i class="fa-solid fa-circle" style="color: #f39c12;"></i> Pendente</span>
                 <span><i class="fa-solid fa-circle" style="color: #27ae60;"></i> Finalizado</span>
-                <span><i class="fa-solid fa-circle" style="color: #e74c3c;"></i> Cancelado</span>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal-detalhes" id="modalEvento">
-        <div class="modal-content">
-            <button class="modal-close" onclick="fecharModal()"><i class="fa-solid fa-xmark"></i></button>
-            <h3 class="modal-title" id="modTitulo"></h3>
-            <div class="modal-info">
-                <p><i class="fa-solid fa-hospital" style="color: #3498db; width: 20px;"></i> <span id="modUbs"></span></p>
-                <p><i class="fa-regular fa-clock" style="color: #3498db; width: 20px;"></i> <span id="modDataHora"></span></p>
-                <p><i class="fa-solid fa-barcode" style="color: #3498db; width: 20px;"></i> <strong>Protocolo:</strong> <span id="modProtocolo" style="font-family: monospace;"></span></p>
-                <p><i class="fa-solid fa-circle-info" style="color: #3498db; width: 20px;"></i> <strong>Status:</strong> <span id="modStatus" class="status-badge"></span></p>
+                <span><i class="fa-solid fa-circle" style="color: #e74c3c;"></i> Cancelado / Reagendar</span>
             </div>
         </div>
     </div>
 
     <script>
-        let calendar; // Variável global do calendário
-
-        // 1. Lógica para alternar entre Tabela e Calendário
+        let calendar; 
         function trocarAba(aba) {
-            // Ajusta os botões
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             event.currentTarget.classList.add('active');
-
-            // Ajusta as Views
             document.querySelectorAll('.view-content').forEach(view => view.classList.remove('active'));
             document.getElementById(aba + '-view').classList.add('active');
-
-            // Se mudou para o calendário, forçamos ele a se redesenhar no tamanho certo
-            if (aba === 'calendario' && calendar) {
-                calendar.render();
-            }
+            if (aba === 'calendario' && calendar) { calendar.render(); }
         }
 
-        // 2. Inicializa o Calendário (FullCalendar)
         document.addEventListener('DOMContentLoaded', function() {
             var calendarEl = document.getElementById('calendar');
-
             calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'dayGridMonth',
                 locale: 'pt-br',
                 buttonText: { today: 'Hoje', month: 'Mês', week: 'Semana', day: 'Dia', list: 'Lista' },
-                headerToolbar: {
-                    left: 'prev,next today',
-                    center: 'title',
-                    right: 'dayGridMonth,listMonth'
-                },
-                // Busca os eventos da nossa nova API no Python
-                events: '/api/calendario_usuario',
-                
-                // O que acontece quando clica em uma consulta
-                eventClick: function(info) {
-                    const props = info.event.extendedProps;
-                    
-                    document.getElementById('modTitulo').innerText = info.event.title;
-                    document.getElementById('modUbs').innerText = props.ubs;
-                    
-                    // Formata a data e hora para ficar bonito (DD/MM/YYYY às HH:mm)
-                    const dataObj = info.event.start;
-                    const dataFormatada = dataObj.toLocaleDateString('pt-BR');
-                    const horaFormatada = dataObj.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
-                    document.getElementById('modDataHora').innerText = `${dataFormatada} às ${horaFormatada}`;
-                    
-                    document.getElementById('modProtocolo').innerText = props.protocolo;
-                    
-                    const spanStatus = document.getElementById('modStatus');
-                    spanStatus.innerText = props.status;
-                    spanStatus.className = 'status-badge status-' + props.status.toLowerCase();
-
-                    // Mostra o Modal
-                    document.getElementById('modalEvento').style.display = 'flex';
-                }
+                headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,listMonth' },
+                events: '/api/calendario_usuario'
             });
             calendar.render();
         });
-
-        // 3. Fechar Modal
-        function fecharModal() {
-            document.getElementById('modalEvento').style.display = 'none';
-        }
     </script>
 </body>
 </html>

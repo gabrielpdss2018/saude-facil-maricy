@@ -19,6 +19,7 @@
         .paciente-card.status-em_andamento { border-left-color: #3498db; background-color: #ebf5fb;}
         .paciente-card.status-finalizado { border-left-color: #27ae60; opacity: 0.7;}
         .paciente-card.status-cancelado { border-left-color: #e74c3c; opacity: 0.5;}
+        .paciente-card.status-reagendamento_solicitado { border-left-color: #e74c3c; opacity: 0.6; }
         
         .paciente-info h3 { margin: 0 0 5px 0; color: #2c3e50; }
         .paciente-info p { margin: 0; color: #7f8c8d; font-size: 14px; }
@@ -27,12 +28,12 @@
         .btn-acao { padding: 10px 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; color: white; transition: 0.2s;}
         .btn-chamar { background-color: #3498db; }
         .btn-chamar:hover { background-color: #2980b9; }
+        .btn-reagendar { background-color: #e67e22; }
+        .btn-reagendar:hover { background-color: #d35400; }
         .btn-concluir { background-color: #27ae60; }
         .btn-concluir:hover { background-color: #2ecc71; }
-        .btn-falta { background-color: #e74c3c; }
-        .btn-falta:hover { background-color: #c0392b; }
         
-        .obs-input { padding: 8px; border: 1px solid #ccc; border-radius: 5px; width: 200px; margin-right: 10px;}
+        .obs-input { padding: 8px; border: 1px solid #ccc; border-radius: 5px; width: 250px; margin-right: 10px;}
     </style>
 </head>
 <body>
@@ -44,7 +45,7 @@
 
     <div class="container">
         <div class="header-painel">
-            <h1 style="margin: 0; color: #2c3e50;">Pacientes Agendados para Hoje</h1>
+            <h1 style="margin: 0; color: #2c3e50;">Agenda de Hoje</h1>
             <span style="background: #e67e22; color: white; padding: 8px 15px; border-radius: 20px; font-weight: bold;">
                 <i class="fa-solid fa-calendar-day"></i> {{ hoje[8:10] }}/{{ hoje[5:7] }}/{{ hoje[0:4] }}
             </span>
@@ -53,7 +54,7 @@
         {% if not pacientes %}
             <div style="text-align: center; padding: 50px; background: white; border-radius: 12px;">
                 <i class="fa-solid fa-mug-hot" style="font-size: 50px; color: #bdc3c7; margin-bottom: 15px;"></i>
-                <h3 style="color: #7f8c8d;">Nenhum paciente agendado para o dia de hoje.</h3>
+                <h3 style="color: #7f8c8d;">Nenhum agendamento para o dia de hoje.</h3>
             </div>
         {% endif %}
 
@@ -73,17 +74,18 @@
                     {% if p['status'] == 'PENDENTE' %}
                         <form method="POST" action="/atualizar_status/{{ p['protocolo'] }}">
                             <input type="hidden" name="status" value="EM ANDAMENTO">
-                            <button type="submit" class="btn-acao btn-chamar"><i class="fa-solid fa-bullhorn"></i> Chamar (Check-in)</button>
+                            <button type="submit" class="btn-acao btn-chamar"><i class="fa-solid fa-bullhorn"></i> Check-in</button>
                         </form>
-                        <form method="POST" action="/atualizar_status/{{ p['protocolo'] }}" onsubmit="return confirm('Confirmar falta do paciente?');">
-                            <input type="hidden" name="status" value="CANCELADO"> <button type="submit" class="btn-acao btn-falta"><i class="fa-solid fa-user-xmark"></i> Faltou</button>
+                        
+                        <form method="POST" action="/solicitar_reagendamento/{{ p['protocolo'] }}" onsubmit="return confirm('Avisar o paciente sobre a necessidade de reagendar devido à indisponibilidade?');">
+                            <button type="submit" class="btn-acao btn-reagendar"><i class="fa-solid fa-calendar-xmark"></i> Indisponibilidade</button>
                         </form>
 
                     {% elif p['status'] == 'EM ANDAMENTO' %}
                         <form method="POST" action="/atualizar_status/{{ p['protocolo'] }}">
                             <input type="hidden" name="status" value="FINALIZADO">
                             <input type="text" name="observacoes" class="obs-input" placeholder="Receituário, sintomas..." required>
-                            <button type="submit" class="btn-acao btn-concluir"><i class="fa-solid fa-check-double"></i> Concluir Atendimento</button>
+                            <button type="submit" class="btn-acao btn-concluir"><i class="fa-solid fa-check-double"></i> Finalizar</button>
                         </form>
                     {% endif %}
                 </div>
