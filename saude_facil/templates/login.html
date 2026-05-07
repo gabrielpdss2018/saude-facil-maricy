@@ -15,6 +15,7 @@
         button:hover { background-color: #16a085; transform: translateY(-2px); }
         .links a { color: #3498db; text-decoration: none; font-weight: bold; font-size: 14px; }
         .erro { background-color: #fee2e2; color: #dc2626; padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size: 14px; font-weight: 600; }
+        .forgot-link { display: block; margin-top: 15px; color: #7f8c8d !important; font-weight: normal !important; font-size: 13px !important; }
     </style>
 </head>
 <body>
@@ -34,6 +35,7 @@
                 <input type="password" name="senha" placeholder="Sua Senha" required>
             </div>
             <button type="submit"><i class="fa-solid fa-right-to-bracket"></i> Entrar no Sistema</button>
+            <a href="{{ url_for('recuperar_senha', tipo='cidadao') }}" class="forgot-link">Esqueceu sua senha?</a>
         </form>
         <div class="links" style="margin-top: 25px;">
             <p style="color: #7f8c8d; font-size: 14px;">Não tem cadastro? <a href="/registro">Criar Conta</a></p>
@@ -42,33 +44,17 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // 1. Bloqueia o Enter (só não bloqueia no campo de senha, para permitir enviar)
             const inputDoc = document.getElementById('login_doc');
-            const inputSenha = document.querySelector('input[type="password"]');
-            
-            inputDoc.addEventListener('keydown', function(event) {
-                if (event.key === 'Enter') {
-                    event.preventDefault();
-                    inputSenha.focus();
-                }
-            });
-
-            // 2. Máscara Dinâmica (Reconhece se é CPF ou SUS pelo tamanho)
             inputDoc.addEventListener('input', function(e) {
-                let v = e.target.value.replace(/\D/g, ''); // Tira tudo que não é número
-                
+                let v = e.target.value.replace(/\D/g, '');
                 if (v.length <= 11) {
-                    // Formata como CPF
                     let x = v.match(/(\d{0,3})(\d{0,3})(\d{0,3})(\d{0,2})/);
                     e.target.value = !x[2] ? x[1] : x[1] + '.' + x[2] + (x[3] ? '.' + x[3] : '') + (x[4] ? '-' + x[4] : '');
                 } else {
-                    // Passou de 11, formata como SUS (15 digitos)
                     let x = v.match(/(\d{0,3})(\d{0,4})(\d{0,4})(\d{0,4})/);
                     e.target.value = !x[2] ? x[1] : x[1] + ' ' + x[2] + (x[3] ? ' ' + x[3] : '') + (x[4] ? ' ' + x[4] : '');
                 }
             });
-
-            // 3. Limpa a máscara antes de ir pro servidor (para bater com o banco)
             document.querySelector('form').addEventListener('submit', function() {
                 inputDoc.value = inputDoc.value.replace(/\D/g, '');
             });

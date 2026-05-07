@@ -14,13 +14,13 @@
         button { width: 100%; padding: 14px; background-color: #e67e22; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; margin-top: 25px; transition: 0.3s; }
         button:hover { background-color: #d35400; }
         .erro { background-color: #fee2e2; color: #dc2626; padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size: 14px; font-weight: 600; }
+        .forgot-link { display: block; margin-top: 15px; color: #7f8c8d; text-decoration: none; font-size: 13px; }
     </style>
 </head>
 <body>
     <div class="login-container">
         <i class="fa-solid fa-user-doctor" style="font-size: 45px; color: #e67e22; margin-bottom: 10px;"></i>
         <h2 style="color: #2c3e50; margin-top: 0;">Portal do Servidor</h2>
-        <p style="color: #7f8c8d; font-size: 14px; margin-top: -10px;">Rede de Saúde Municipal</p>
         
         {% if erro %} <div class="erro"><i class="fa-solid fa-circle-exclamation"></i> {{ erro }}</div> {% endif %}
 
@@ -33,7 +33,8 @@
                 <i class="fa-solid fa-key"></i>
                 <input type="password" name="senha" placeholder="Senha" required>
             </div>
-            <button type="submit"><i class="fa-solid fa-right-to-bracket"></i> Acessar Painel</button>
+            <button type="submit">Acessar Painel</button>
+            <a href="{{ url_for('recuperar_senha', tipo='servidor') }}" class="forgot-link">Esqueceu sua senha?</a>
         </form>
         <a href="/" style="display: block; margin-top: 20px; color: #7f8c8d; text-decoration: none; font-size: 13px;">⬅ Voltar ao portal do Cidadão</a>
     </div>

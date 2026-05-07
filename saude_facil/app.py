@@ -2,7 +2,6 @@ from flask import Flask, render_template, request, redirect, url_for, session, j
 import sqlite3
 import uuid
 from datetime import date
-import os
 
 app = Flask(__name__)
 app.secret_key = 'chave_secreta_saude_facil'
@@ -18,7 +17,6 @@ def get_conexao():
     return conexao
 
 # ================= AUTO-CONFIGURAÇÃO DO BANCO =================
-# Essa função roda sozinha quando o servidor liga e cria todas as tabelas!
 def auto_setup_bd():
     conexao = sqlite3.connect('saude_facil.db')
     cursor = conexao.cursor()
@@ -40,11 +38,48 @@ def auto_setup_bd():
     conexao.commit()
     conexao.close()
 
-# Roda a verificação antes da primeira requisição
 with app.app_context():
     auto_setup_bd()
 
-# ================= ROTAS DO CIDADÃO =================
+# ================= ROTA DE RECUPERAÇÃO (NOVA) =================
+@app.route('/recuperar_senha', methods=['GET', 'POST'])
+def recuperar_senha():
+    tipo = request.args.get('tipo', 'cidadao') # Pega o tipo via URL
+    erro = None
+    mensagem = None
+    
+    if request.method == 'POST':
+        identificador = request.form['identificador']
+        nova_senha = request.form['nova_senha']
+        tipo = request.form['tipo']
+        
+        conexao = get_conexao()
+        if tipo == 'cidadao':
+            usuario = conexao.execute('SELECT * FROM usuario WHERE cpf = ? OR cartao_sus = ?', (identificador, identificador)).fetchone()
+            if usuario:
+                conexao.execute('UPDATE usuario SET senha = ? WHERE id = ?', (nova_senha, usuario['id']))
+            else: erro = "Cidadão não encontrado com este documento."
+        
+        elif tipo == 'servidor':
+            prof = conexao.execute('SELECT * FROM profissional WHERE login = ?', (identificador,)).fetchone()
+            if prof:
+                conexao.execute('UPDATE profissional SET senha = ? WHERE id = ?', (nova_senha, prof['id']))
+            else: erro = "Matrícula do servidor não encontrada."
+            
+        elif tipo == 'gestor':
+            gestor = conexao.execute('SELECT * FROM gestor WHERE login = ?', (identificador,)).fetchone()
+            if gestor:
+                conexao.execute('UPDATE gestor SET senha = ? WHERE id = ?', (nova_senha, gestor['id']))
+            else: erro = "Login de gestor não encontrado."
+
+        if not erro:
+            conexao.commit()
+            mensagem = "Senha redefinida com sucesso!"
+        conexao.close()
+
+    return render_template('recuperar_senha.html', tipo=tipo, erro=erro, mensagem=mensagem)
+
+# ================= RESTANTE DAS ROTAS (MANTIDAS) =================
 @app.route('/')
 def home(): return render_template('index.html')
 
@@ -161,7 +196,7 @@ def logout():
     session.clear()
     return redirect(url_for('home'))
 
-# ================= ROTAS DO PROFISSIONAL / UBS =================
+# ================= PROFISSIONAL / UBS =================
 @app.route('/login_servidor', methods=['GET', 'POST'])
 def login_servidor():
     erro = None
@@ -198,7 +233,7 @@ def logout_servidor():
     session.pop('profissional_id', None); session.pop('profissional_nome', None); session.pop('profissional_ubs_id', None); session.pop('profissional_ubs_nome', None)
     return redirect(url_for('login_servidor'))
 
-# ================= ROTAS DO GESTOR MUNICIPAL =================
+# ================= GESTOR MUNICIPAL =================
 @app.route('/login_gestor', methods=['GET', 'POST'])
 def login_gestor():
     erro = None
@@ -240,18 +275,16 @@ def cadastrar_ubs():
     conexao.close()
     return render_template('cadastrar_ubs.html', nome=session['gestor_nome'], servicos=todos_servicos, mensagem=mensagem)
 
-# NOVA ROTA: CADASTRAR SERVIÇOS DO CATÁLOGO!
 @app.route('/cadastrar_servico', methods=['GET', 'POST'])
 def cadastrar_servico():
     if 'gestor_id' not in session: return redirect(url_for('login_gestor'))
     mensagem = None
     if request.method == 'POST':
         conexao = get_conexao()
-        conexao.execute('INSERT INTO servico_saude (nome, descricao, icone) VALUES (?, ?, ?)', 
-                        (request.form['nome'], request.form['descricao'], request.form['icone']))
+        conexao.execute('INSERT INTO servico_saude (nome, descricao, icone) VALUES (?, ?, ?)', (request.form['nome'], request.form['descricao'], request.form['icone']))
         conexao.commit()
         conexao.close()
-        mensagem = "Novo Serviço adicionado ao catálogo geral da Prefeitura!"
+        mensagem = "Novo Serviço adicionado!"
     return render_template('cadastrar_servico.html', nome=session['gestor_nome'], mensagem=mensagem)
 
 @app.route('/cadastrar_profissional', methods=['GET', 'POST'])
@@ -261,8 +294,7 @@ def cadastrar_profissional():
     conexao = get_conexao()
     if request.method == 'POST':
         try:
-            conexao.execute('INSERT INTO profissional (nome, cargo, login, senha, ubs_id) VALUES (?, ?, ?, ?, ?)', 
-                            (request.form['nome'], request.form['cargo'], request.form['login'], request.form['senha'], request.form['ubs_id']))
+            conexao.execute('INSERT INTO profissional (nome, cargo, login, senha, ubs_id) VALUES (?, ?, ?, ?, ?)', (request.form['nome'], request.form['cargo'], request.form['login'], request.form['senha'], request.form['ubs_id']))
             conexao.commit()
             mensagem = "Profissional cadastrado com sucesso!"
         except sqlite3.IntegrityError: erro = "Este Login/Matrícula já está em uso."
